@@ -1,0 +1,113 @@
+[
+  {
+    "p": {
+      "x": 80,
+      "y": 80
+    },
+    "id": 0,
+    "title": "在紐約大學讀研當助教的進化日誌",
+    "content": "今年的夏天，我來到了紐約開始我的研究所生涯，唸的是IDM (Integrated Digital Media)，剛開學的時候很急著在學校裡面找到工作（因為想要拿SSN就能辦信用卡跟做很多事了)，對自己的感覺就像拿到了一個證明，知道自己真的在這裡開始扎根了，這應該算是我第一個受聘的正職，進行的比想像中倒順利很多，所以趁著在學期結束的一切記憶都還熱騰騰的時候，為各位帶來在紐約當助教的八卦跟到底都在玩些什麼東西。",
+    "type": "start",
+    "dragging": false,
+    "nextNode": null,
+    "documentId": "-LVRM7irp7zlrbDxy0xi",
+    "nextNodeId": 1
+  },
+  {
+    "p": {
+      "x": 380,
+      "y": 262
+    },
+    "id": 1,
+    "title": "為什麼要當助教呢？",
+    "content": "學期初的時候原本投了學校IT部門UX Designer的工作，沒想到雖然面試很順利，但是卻遲遲沒有消息，完全就是一個被發無聲卡的節奏，同時間又看到系上開始在找研究助理，我就想說，不如兩個都投投看吧！反正原本自己就在做教學相關的工作，如果還能夠順便幫教授做做project應該蠻好玩的。",
+    "src": "https://picsum.photos/200/100",
+    "dragging": false,
+    "nextNode": null,
+    "documentId": "-LVRM7irp7zlrbDxy0xi",
+    "nextNodeId": 2
+  },
+  {
+    "p": {
+      "x": 80,
+      "y": 467
+    },
+    "id": 2,
+    "title": "我的教授照片",
+    "src": "https://cdn-images-1.medium.com/max/1600/1*nBrx6KSK7E6rLP0Js009YQ.png",
+    "type": "image",
+    "content": "",
+    "dragging": false,
+    "nextNode": null,
+    "documentId": "-LVRM7irp7zlrbDxy0xi",
+    "nextNodeId": 3
+  },
+  {
+    "p": {
+      "x": 380,
+      "y": 64
+    },
+    "id": 4,
+    "title": "在一切開始之前",
+    "dragging": false,
+    "content": "在還沒見到我的教授之前，看網路上的照片快被嚇死，我的教授看起來超兇，感覺剛被放出來（欸，但實際上見到人之後覺得意外的很和善，長得也完全不像照片上那樣。所以跟教授面試的時候，就開了課程的範例跟敘述一下自己在程式方面的經驗，打開codepen炫了炫。\n\n當下有提到如果IT上了的話，我就要毅然決然的拋棄系上來去曼哈頓上班，享受一下在繁華大城市的感覺，因為我們校區在布魯克林，實在是相對比較悠閒跟沒那麼誇張的繁華。\n\n想了一天之後，覺得如果是繼續做設計稿的話好像跟在台灣做的事情沒什麼差別，又很不甘願工作就只是在電腦前做做別人指定的設計稿，所以就直接聯繫教授說我想要這份工作了XD 現在想想好險是做這個決定，在開啟了我後面這一串莫名認真（？的助教進化之旅。\n\n在這12週裡做的事情遠超乎自己的預料，雖然大部分是因為不甘心就只坐在那邊給人問問題，所以會自己給自己找事情做。這學期我把系上的助教體制從一開始的毫無規範，到建立了整套運作規則， 預約制、記錄表格、週報、成效分析與怎麼評估跟分配時間，也大幅的增強了自己建立人際關係的能力，跟知道要如何停損每個人花費的時間，陪養了很多的耐心，在看到一臉呆滯沒在思考的學生的時候不會暴怒XD",
+    "nextNode": null,
+    "documentId": "-LVRM7irp7zlrbDxy0xi",
+    "nextNodeId": 4
+  },
+  {
+    "p": {
+      "x": 380,
+      "y": 460
+    },
+    "title": "左邊是問題學生一號",
+    "id": 3,
+    "dragging": false,
+    "content": "",
+    "nextNode": null,
+    "documentId": "-LVRM7irp7zlrbDxy0xi",
+    "nextNodeId": 5,
+    "src": "https://cdn-images-1.medium.com/max/1600/1*LtLR9N-jSP3tZ3ocm6Ca8A.jpeg",
+    "type": "image"
+  },
+  {
+    "p": {
+      "x": 680,
+      "y": 130
+    },
+    "title": "預約制規劃與規則制定",
+    "id": 5,
+    "dragging": false,
+    "content": "原本助教應該是不用約的，就是挑一張自己覺得愜意的桌子，捧著電腦把office hour 待好待滿，我一開始不知道其實蠻多研究生助理不會把時數做滿，教授還是會給滿20小時的薪水，所以就傻傻的每週排了20小時的助教時間再來崩潰，因為20小時實在太長，只靠乾等人來的話實在是無聊又無法預測到底要怎麼幫那些學生。",
+    "nextNode": null,
+    "documentId": "-LVRM7irp7zlrbDxy0xi",
+    "nextNodeId": 6
+  },
+  {
+    "p": {
+      "x": 680,
+      "y": 526
+    },
+    "title": "Calendly 預約系統",
+    "id": 6,
+    "dragging": false,
+    "type": "image",
+    "src": "https://cdn-images-1.medium.com/max/1600/1*m4VyC3EJxeYNn8utQsfRNg.png",
+    "nextNode": null,
+    "documentId": "-LVRM7irp7zlrbDxy0xi",
+    "nextNodeId": 7
+  },
+  {
+    "p": {
+      "x": 681,
+      "y": 329
+    },
+    "title": "預約制嘗試的結果",
+    "id": 7,
+    "dragging": false,
+    "content": "那時想起了在預約課程討論的時候，有用過一個好像不錯的軟體叫做calendly，於是我第一週閒暇之餘開始研究把助教時間改為預約制並要求至少要提早一天左右預約，就能看到日曆裡面自動隨著預約會冒出應該要出現在學校的時間。\n\n還好一開始有想到預約制，隨著期中期末大家越來越崩潰，老是捧著電腦一個接著一個來，預約制讓我可以名正言順地留足夠的時間給每個人，當然，也會有提早結束的時候，就當做自己偷偷休息的時候，但尤其是外國人，問問題都沒在客氣的，常常雙手一攤就說，我不會做，把事情全部丟給我，如果東西簡單我還會好聲好氣的說你要多嘗試一下，更多是那種複製一堆別人的code來給我看，說我不會改的，整個怒火就會上來叫他回去自己努力一下再過來找助教。",
+    "nextNode": null,
+    "documentId": "-LVRM7irp7zlrbDxy0xi",
+    "nextNodeId": 8
+  }
+]

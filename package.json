@@ -1,0 +1,32 @@
+{
+  "name": "plantsay",
+  "version": "1.0.0",
+  "description": "Node-based Knowledge Management",
+  "author": "frank890417",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "@nuxtjs/axios": "^5.0.0",
+    "bootstrap": "^4.1.3",
+    "bootstrap-vue": "^2.0.0-beta",
+    "cross-env": "^5.2.0",
+    "firebaseui": "^3.5.1",
+    "jquery": "^3.3.1",
+    "nuxt": "^2.0.0"
+  },
+  "devDependencies": {
+    "coffee-loader": "^0.9.0",
+    "coffeescript": "^2.3.2",
+    "firebase": "^5.7.2",
+    "node-sass": "^4.11.0",
+    "nodemon": "^1.11.0",
+    "pug": "^2.0.3",
+    "pug-plain-loader": "^1.0.0",
+    "sass-loader": "^7.1.0"
+  }
+}
