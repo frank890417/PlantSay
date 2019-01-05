@@ -5,20 +5,24 @@ div.page-post-editor
   .seeds#seeds_field(@dblclick="createSeed",
          @mousemove= "mouseMoving")
     .controls
-      label.mr-3 檢視詳細內容
-        input(type="checkbox" v-model="postSettings.showNodeDetail")
-      label.mr-3 預覽
-        input(type="checkbox" v-model="postSettings.showPreview")
-      label.mr-3 自動繞線
-        input(type="checkbox" v-model="postSettings.showStepLine")
-      button.btn.btn-primary.mr-3(@click="sortNode") 整理
-      button.btn.btn-secondary.mr-3(@click="saveAllNode") 存檔
-      label.mr-5 字數統計: {{ allTextLength }}
-      
-      label(v-if="allTextLength<1000") (短文)
-      label(v-else-if="allTextLength<2000") (一般長度)
-      label(v-else-if="allTextLength<3000") (中長文)
-      label(v-else="allTextLength<3000") (長文)]
+      .row
+        .col-sm-3
+          input.form-control(v-if="post" v-model="post.title" placeholder="標題")
+        .col-sm-9
+          label.mr-3 檢視詳細內容
+            input(type="checkbox" v-model="postSettings.showNodeDetail")
+          label.mr-3 預覽
+            input(type="checkbox" v-model="postSettings.showPreview")
+          label.mr-3 自動繞線
+            input(type="checkbox" v-model="postSettings.showStepLine")
+          button.btn.btn-primary.mr-3(@click="saveAllNode") 存檔
+          button.btn.btn-secondary.mr-3(@click="sortNode") 整理
+          label.mr-5 字數統計: {{ allTextLength }}
+          
+          label(v-if="allTextLength<1000") (短文)
+          label(v-else-if="allTextLength<2000") (一般長度)
+          label(v-else-if="allTextLength<3000") (中長文)
+          label(v-else="allTextLength<3000") (長文)]
       
       //- label {{pinning}}
       
@@ -33,9 +37,9 @@ div.page-post-editor
         i.fa.fa-times
       .seed-content
         div.button-group.mb-3(v-if="getSeedEditStatus(seed)")
-          .btn.btn-light(@click="seed.type='text'", :class="{active: seed.type=='text'}")
+          .btn.btn-light(@click="$set(seed,'type','text')", :class="{active: seed.type=='text'}")
             i.fa.fa-font
-          .btn.btn-light(@click="seed.type='image'", :class="{active: seed.type=='image'}")
+          .btn.btn-light(@click="$set(seed,'type','image')", :class="{active: seed.type=='image'}")
             i.fa.fa-image
 
           
@@ -81,7 +85,7 @@ export default {
       return seedsRef.once("value")
             .then((snapshot)=> {
               let seeds= snapshot.val()
-              if (!seeds){
+              if (seeds===null || Object.keys(seeds).length==0 ){
                   
                 seeds=[]
                 let newSeedKey = db.ref().child('seeds').push().key;
@@ -91,6 +95,7 @@ export default {
                       "y": 80
                     },
                     "id": 0,
+                    "uid": newSeedKey,
                     "title": "新文章開頭",
                     "type": "start",
                     "dragging": false,
@@ -103,13 +108,14 @@ export default {
               return { 
                   seedsRef,
                   documentId: params.id,
-                  seeds: Object.values(seeds),
+                  seeds: Object.keys(seeds).map(key=>({...seeds[key],uid: key})),
                   mousePos: {x: 0,y: 0},
                   postSettings: {
                     showNodeDetail: true,
                     showPreview: true,
                     showStepLine: true,
                   },
+                  post: {},
                   fullScreen: false,
                   focusedSeed: null,
                   pinning: false,
@@ -137,8 +143,9 @@ export default {
             p: {x:evt.x ,y: evt.y},
             title: "",
             id:  Math.max(...this.seeds.map(seed=>seed.id))+1,
-            documentId: this.documentId
-          };
+            documentId: this.documentId,
+            uid: newSeedKey
+        };
         db.ref("seeds").child(newSeedKey).set(nObj)
         this.seeds.push(nObj)
         
@@ -146,7 +153,7 @@ export default {
       // console.log(this.seeds)
     },
     getSeedEditStatus(seed){
-      return (this.postSettings.showNodeDetail || this.focusedSeed===seed) && !this.pinning
+      return this.postSettings.showNodeDetail || (this.focusedSeed===seed && !this.pinning)
     },
     getNextNode(target){
       if (target){
@@ -339,10 +346,12 @@ export default {
     },
     saveAllNode(){
       this.seeds.forEach((seed,seedKey)=>{
-        db.ref("seeds").child(seedKey).set({
-          ...seed,
-          updated_at: Date.now(),
-        })
+        if (seed.uid!=0){
+          db.ref("seeds").child(seed.uid).set({
+            ...seed,
+            updated_at: Date.now(),
+          })
+        }
       })
     }
   },
@@ -417,13 +426,13 @@ export default {
         this.seeds=this.seeds.slice(0,this.seeds.length)
       })
     },
+    "post.title": function(value){
+      console.log(value)
+      let postRef = db.ref("posts/").child(this.documentId).child("title")
+      postRef.set(value)
+    },
     seeds(){
-      this.seeds.forEach((seed,seedKey)=>{
-        db.ref("seeds").child(seedKey).set({
-          ...seed,
-          updated_at: Date.now(),
-        })
-      })
+      this.saveAllNode()
        let postRef = db.ref("posts/").child(this.documentId).child("updated_at").set({
           updated_at: Date.now(),
        })
@@ -512,6 +521,8 @@ img
   bottom: 0
   padding: 10px 20px
   color: white
+  background-color: rgba(#333,0.9)
+  z-index: 2000
   
 svg.graphs
   position: absolute
