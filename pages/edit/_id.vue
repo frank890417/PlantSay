@@ -43,6 +43,8 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
             i.fa.fa-font
           .btn.btn-light(@click="$set(seed,'type','image')", :class="{active: seed.type=='image'}")
             i.fa.fa-image
+          .btn.btn-light(@click="$set(seed,'type','link')", :class="{active: seed.type=='link'}")
+            i.fa.fa-link
           
 
           
@@ -54,8 +56,14 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
           div(v-if="getSeedEditStatus(seed)")
             input.form-control(v-model="seed.src" placeholder="Picture Link")
             input.form-control(v-model="seed.title" placeholder="Title")
+            el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
+            span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
           //- textarea.form-control(v-model="seed.content" v-if="postSettings.showNodeDetail" rows=2)
-          
+        
+        div(v-else-if="seed.type=='link'")
+          input.title.form-control(v-model="seed.title", placeholder="標題")
+          input.form-control(v-model="seed.href" placeholder="Link")
+
         div(v-else)
           label(v-if="seed.type=='start'") 文章開頭
           input.title.form-control(v-model="seed.title", placeholder="段落標題")
@@ -64,7 +72,7 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
             span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
           .placeholder-line(v-for="num in parseInt((seed.content||'').length/100)" v-else)
       .pin.inlet(@mouseup.prevent="endLinking(seed,$event)")
-      .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',null);saveSeed(seed)")
+      .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',0);saveSeed(seed)")
     svg.graphs(@click="focusedSeed=null")
       
       polyline(v-for="line in linkLines",
@@ -90,6 +98,10 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
               img(:src="seed.src")
               pre {{ seed.title }}
               br
+            div(v-else-if="seed.type=='link'")
+              a(:href="seed.href" target="_blank") {{ seed.title }}
+              el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
+              b
             div(v-else)
               
               el-input.title(v-model = "seed.title" autosize, v-if="seed.title")
@@ -374,7 +386,7 @@ export default {
 
         this.seeds.forEach(seed=>{
           if (seed.nextNodeId==targetSeed.id){
-            seed.nextNodeId=null
+            seed.nextNodeId=0
           }
         })
         

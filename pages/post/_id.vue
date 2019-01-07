@@ -72,7 +72,11 @@ export default {
     getSeedHtmlContent(seed){
       let result = `<div class='result_section seed_${seed.id}_section'>`
       if (seed.type=="image"){
-        result+= `<img src='${seed.src}' title='${seed.title}' title='${seed.title}'/>`
+        result+= `<img src='${seed.src}' title='${seed.title}' title='${seed.title}'/>
+              <h6 class='mt-3 mb-4'>${seed.title}</h6>
+              <p>${ (seed.content || "").replace(/\n/g,"<br>") || "" }</p>`
+      }else if (seed.type=="link"){
+         result+= `<a href=${seed.href}>${seed.title}</a>`
       }else{
         result+= `<h3 class='mt-3 mb-4'>${seed.title}</h3>
               <p>${ (seed.content || "").replace(/\n/g,"<br>") || "" }</p>`
