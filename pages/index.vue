@@ -1,15 +1,16 @@
 <template lang="pug">
-.page
+.page.page-index
     .container.pt-5
         .row
             .col-sm-12
-                h2.mb-5 PlantSay測試版 文章一覽
-                //- hr
+                navbar
         .row
             .col-sm-3
+                
                 div(v-if="!user")
+                    p.mb-5 登入以新增文章
+                        button.btn.btn-primary.float-right(@click="login") 登入
                     #firebaseui-auth-container
-                    button.btn.btn-primary(@click="login") 登入
                 div(v-else)
                     h4 Hello {{user.displayName}}
                     br
@@ -18,29 +19,14 @@
 
                 ul.list-group
                     li.list-group-item(v-for="(post,pid) in posts")
-                        nuxt-link(:to="'/edit/'+pid" v-if="post") 
+                        nuxt-link(:to="'/post/'+pid"  v-if="post" target="_blank") 
                             h4 {{post.title || "新文章"}}
-                        label {{ post.authorName }} | {{ Date(post.created_at).toLocaleString() }}
+                        label {{ post.authorName }} | {{ new Date(post.created_at).toLocaleString() }}
                         .btn.btn-dark.float-right(@click="deletePost(pid)") 刪除
-                        nuxt-link.float-right(:to="'/post/'+pid" v-if="post" target="_blank") 
-                            .btn.btn-light.mr-2 前往文章
+                        nuxt-link.float-right(:to="'/edit/'+pid" v-if="post" ) 
+                            .btn.btn-light.mr-2 編輯
                     button.form-control.btn.btn-primary(@click="addPost", v-if="user") 新增文章
 
-                div.mt-5.mb-3
-                    h6 2019/1/6 v0.0.02
-                    ol
-                        li 修正無法正確刪除問題 
-                        li 修正文章無標題時無法點進去
-                        li 加上文章刪除、節點刪除提示
-                        li 讓右側預覽文章也能即時編輯，並反應回節點
-                        li 加上文章時間紀錄
-                        li 新增畫面即時同步功能(socket.io)
-                        li 新增自動即時儲存節點功能
-                        li 修正整理後會跳回問題
-                        li 修正右側編輯跳回問題
-                        li 修正點擊取消連線崩潰問題
-                        li 新增link
-            
 </template>
 
 <script>
@@ -48,6 +34,7 @@ import { db } from '~/plugins/firebase.js'
 import firebase  from 'firebase'
 import firebaseui  from 'firebaseui'
 import {mapState} from 'vuex'
+import navbar from '~/components/navbar'
 // Initialize the FirebaseUI Widget using Firebase.
 let ui = new firebaseui.auth.AuthUI(firebase.auth());
 let uiConfig = {
@@ -73,6 +60,9 @@ let uiConfig = {
         }
 
 export default {
+    components: {
+        navbar
+    },
     asyncData ({ params }) {
         return db.ref("posts").once("value")
             .then((snapshot)=> {
@@ -187,5 +177,7 @@ export default {
 </script>
 
 <style lang="sass">
-
+.page-index
+    .container
+        // max-width: 1400px
 </style>

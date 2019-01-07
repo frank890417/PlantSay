@@ -1,7 +1,7 @@
 <template lang="pug">
 div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
   h1.logo 
-    nuxt-link(to="/") PlantSay v0.01
+    nuxt-link(to="/") Organism v0.0.2
   .seeds#seeds_field(@dblclick="createSeed",
         @mousemove= "mouseMoving",
         @click="handleBgClick",
@@ -66,7 +66,7 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
 
         div(v-else)
           label(v-if="seed.type=='start'") 文章開頭
-          input.title.form-control(v-model="seed.title", placeholder="段落標題")
+          input.title.form-control(v-model="seed.title", :placeholder="(''+seed.content||'').slice(0,12)+'...' ")
           div(v-if="getSeedEditStatus(seed)"  )
             el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
             span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
@@ -226,7 +226,7 @@ export default {
       // console.log(this.seeds)
     },
     getSeedEditStatus(seed){
-      return this.postSettings.showNodeDetail || (this.focusedSeed===seed && !this.pinning)
+      return this.postSettings.showNodeDetail || (this.focusedSeed===seed && !this.pinning && !this.dragging)
     },
     getNextNode(target){
       if (target){
@@ -276,6 +276,9 @@ export default {
         this.focusedSeed.dragging = false
       }
       this.pinning=false
+      if (this.dragging){
+        // this.focusedSeed=null
+      }
       this.dragging=false
       // console.log(evt.target)
     },
@@ -299,7 +302,7 @@ export default {
           top: seed.p.y+ "px",
           cursor: seed.dragging?"grab":"initial",
           opacity: (this.getNextNode(seed) || seed=== this.focusedSeed)?1:0.8,
-          'box-shadow': this.focusedSeed===seed?"0px 0px 0px 6px rgba(200,100,100,0.7),0px 0px 0px 6px rgba(30,30,30,0.9)":"0px 0px 30px rgba(0,0,0,0.3),0px 0px 0px 6px rgba(150,150,150,0.8)",
+          'box-shadow': this.focusedSeed===seed?"0px 0px 0px 5px rgba(200,100,100,0.7),0px 0px 0px 5px rgba(30,30,30,0.9)":"0px 0px 5px rgba(0,0,0,0.3),0px 0px 0px 2px rgba(150,150,150,0.6)",
           'z-index':  this.focusedSeed===seed?1000:seed.id
         }
       }
@@ -583,17 +586,12 @@ export default {
 <style lang="sass">
 .page
   height: 100%
-html,body
-  margin: 0
-  width: 100%
-  height: 100%
-  font-size: 13px
 h1.logo
   position: fixed
   color: white
   left: 10px
   top: 10px
-  
+  font-weight: 600
   z-index: 200
 img
   max-width: 100%
@@ -601,19 +599,24 @@ img
   
 .page-post-editor
   width: 100%
-  height: 100%
+  height: 100vh
   position: relative
   display: flex
   justify-content: center
   align-items: center
+  overflow: hidden
   
 .seeds
   flex: 8
+  overflow: scroll
+
+#seeds_field
+  overflow: scroll
   
 .generate_essay
   flex: 3
-  padding-left: 10px
-  padding-right: 10px
+  padding-left: 5px
+  padding-right: 5px
   .el-input,.el-textarea
     padding-left: 0
     padding-right: 0
@@ -706,7 +709,7 @@ svg.graphs
 .seed
   position: absolute
   // border: solid 1px #ccc
-  border-radius: 3px
+  border-radius: 2px
   background-color: #fff
   // padding: 20px 15px
   box-shadow: 0px 0px 15px rgba(black,0.2)
@@ -744,7 +747,7 @@ svg.graphs
     bottom: -5px
   &.linked
     // border: solid 4px #bbb
-    box-shadow: 0px 0px 0px 6px rgba(#888,0.7) ,0px 0px 10px rgba(black,0.2)
+    box-shadow: 0px 0px 0px 1px rgba(#888,0.7) ,0px 0px 5px rgba(black,0.2)
     
   &:hover
     // background-color: #eee
@@ -758,7 +761,7 @@ svg.graphs
     margin-bottom: 8px
 
 input.title
-  font-size: 1.5rem
+  font-size: 1.4rem
   background-color: transparent
   border: none
   border-bottom: 20px

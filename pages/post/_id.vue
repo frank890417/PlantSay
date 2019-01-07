@@ -1,11 +1,13 @@
 <template lang="pug">
 div.page-post.pt-5
   h1.logo 
-    nuxt-link(to="/") PlantSay v0.01
+    nuxt-link(to="/") Organism v0.02
   .container
     .row
-      .col-sm-12
+      .col-sm-12.mt-5
         h1.mb-5 {{post.title}}
+        pre.text-right {{post.authorName}} {{ new Date(post.created_at).toLocaleString() }}
+        hr
         .generate_essay(v-html="generatedEssay")
 
 </template>
