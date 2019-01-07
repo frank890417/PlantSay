@@ -1,5 +1,7 @@
 <template lang="pug">
 div.page-post.pt-5
+  h1.logo 
+    nuxt-link(to="/") PlantSay v0.01
   .container
     .row
       .col-sm-12

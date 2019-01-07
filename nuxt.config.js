@@ -28,14 +28,16 @@ module.exports = {
   ** Global CSS
   */
   css: [
-    "node_modules/firebaseui/dist/firebaseui.css"
+    "node_modules/firebaseui/dist/firebaseui.css",
+    'element-ui/lib/theme-chalk/index.css'
   ],
 
   /*
   ** Plugins to load before mounting the App
   */
   plugins: [
-    "@/plugins/auth.js"
+    "@/plugins/auth.js",
+    "@/plugins/elementui.js"
   ],
 
   /*
@@ -64,5 +66,20 @@ module.exports = {
     extend(config, ctx) {
       
     }
-  }
+  },
+  vender:[
+    'element-ui'
+  ],
+  babel:{
+    "plugins": [["component", [
+      {
+        "libraryName": "element-ui",
+        "styleLibraryName": "theme-default"
+      },
+      'transform-async-to-generator',
+      'transform-runtime'
+    ]]],
+    comments: true
+  },
+  
 }

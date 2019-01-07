@@ -1,9 +1,11 @@
 <template lang="pug">
-div.page-post-editor
+div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
   h1.logo 
     nuxt-link(to="/") PlantSay v0.01
   .seeds#seeds_field(@dblclick="createSeed",
-         @mousemove= "mouseMoving")
+        @mousemove= "mouseMoving",
+        @click="handleBgClick",
+        @click.right="handleBgClick")
     .controls
       .row
         .col-sm-3
@@ -33,14 +35,15 @@ div.page-post-editor
           @click="focusSeed(seed)"
           :id="'node_'+seed.id",
           :class="{linked: getNextNode(seed)}")
-      .delete-btn(@click="deleteSeed(seed)")
+      .delete-btn(@click="deleteSeed(seed) ")
         i.fa.fa-times
       .seed-content
-        div.button-group.mb-3(v-if="getSeedEditStatus(seed)")
+        div.button-group.mb-3(v-if="getSeedEditStatus(seed) && seed.type!='start'")
           .btn.btn-light(@click="$set(seed,'type','text')", :class="{active: seed.type=='text'}")
             i.fa.fa-font
           .btn.btn-light(@click="$set(seed,'type','image')", :class="{active: seed.type=='image'}")
             i.fa.fa-image
+          
 
           
           //select(v-model="seed.type")
@@ -56,23 +59,43 @@ div.page-post-editor
         div(v-else)
           label(v-if="seed.type=='start'") 文章開頭
           input.title.form-control(v-model="seed.title", placeholder="段落標題")
-          div(v-if="getSeedEditStatus(seed)")
-            
-            textarea.form-control(v-model="seed.content"  rows=4, placeholder="段落內容")
+          div(v-if="getSeedEditStatus(seed)"  )
+            el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
             span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
           .placeholder-line(v-for="num in parseInt((seed.content||'').length/100)" v-else)
       .pin.inlet(@mouseup.prevent="endLinking(seed,$event)")
-      .pin.outlet(@mousedown.prevent="startLinking(seed,$event)")
+      .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',null);saveSeed(seed)")
     svg.graphs(@click="focusedSeed=null")
       
       polyline(v-for="line in linkLines",
            :points="line.poly"
            stroke-linejoin="round")
       
-  .generate_essay(v-if="postSettings.showPreview")
-    h4 文章預覽
-    .close-preview(@click="postSettings.showPreview=false") X
-    .result(v-html="generatedEssay")
+  .generate_essay(v-if="postSettings.showPreview" )
+    .container-fluid.mt-5
+      .row
+        .col-sm-12
+          h4.mb-5 文章預覽
+          
+            nuxt-link.float-right(v-if = "documentId" ,:to="'/post/'+documentId"  target="_blank") 
+                .btn.btn-dark 前往文章
+        
+      .close-preview(@click="postSettings.showPreview=false") X
+      .row
+        .col-sm-12
+          div(v-for="seed in linkedNodeList",
+              :class = "['result_section',`seed_${seed.id}_section`]")
+            div(v-if="seed.type=='image'")
+              img(:src="seed.src")
+              pre {{ seed.title }}
+              br
+            div(v-else)
+              
+              el-input.title(v-model = "seed.title" autosize, v-if="seed.title")
+              el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
+              br
+          
+          //- .result(v-html="generatedEssay")
   
 </template>
 
@@ -110,6 +133,7 @@ export default {
                   documentId: params.id,
                   seeds: Object.keys(seeds).map(key=>({...seeds[key],uid: key})),
                   mousePos: {x: 0,y: 0},
+                  dragging: false,
                   postSettings: {
                     showNodeDetail: true,
                     showPreview: true,
@@ -133,6 +157,41 @@ export default {
       this.post=snapshot.val()
       this.postSettings = this.post.postSettings
     })
+
+    let seedsRef = db.ref("seeds").orderByChild("documentId").equalTo(this.documentId)
+    seedsRef.on('value',(snapshot)=>{
+      let seeds = snapshot.val()
+      seeds = Object.keys(seeds).map(key=>({...seeds[key],uid: key}))
+      seeds.forEach(seed=>{
+        let localSeed = this.seeds.find(s=>s.uid==seed.uid)
+        if (localSeed){
+            Object.keys(localSeed ).forEach(key=>{
+          
+          if ( JSON.stringify(seed[key])!= JSON.stringify(localSeed[key])){
+
+            // console.log(( JSON.stringify(seed[key]),JSON.stringify(localSeed[key])))
+            console.log(`Updated Seed${seed.uid} :`+key)
+            this.$set( localSeed, key, seed[key] )
+  
+            
+            }
+          })
+        }
+        if (!localSeed){
+          this.seeds.push(seed)
+        }
+        
+      })
+
+      this.seeds = seeds.map(s=>this.seeds.find(ss=>ss.uid==s.uid)).filter(s=>s)
+
+      this.$nextTick(()=>{
+        this.$set(this,'seeds',this.seeds)
+        this.$set(this.seeds,'randomUpdateId', parseInt(Math.random*100000))
+      })
+
+    })
+    
 
   },
   methods: {
@@ -172,7 +231,7 @@ export default {
       this.setFocus(seed)
       // evt.preventDefault()
       if (evt.target.classList.contains("seed")){
-        this.focusedSeed.dragging = true
+        this.dragging = true
         this.draggingPan = evt
       }
       
@@ -186,9 +245,13 @@ export default {
     mouseMoving(evt){
       this.mousePos.x =evt.x
       this.mousePos.y =evt.y
-      if ( this.focusedSeed && this.focusedSeed.dragging) {
+      if ( this.focusedSeed && this.dragging) {
         this.focusedSeed.p.x = evt.x - this.draggingPan.offsetX
         this.focusedSeed.p.y = evt.y - this.draggingPan.offsetY
+
+
+        db.ref("seeds").child(this.focusedSeed.uid).child('p').set(this.focusedSeed.p)
+
       }
     },
     endDragging(seed,evt){
@@ -196,6 +259,7 @@ export default {
         this.focusedSeed.dragging = false
       }
       this.pinning=false
+      this.dragging=false
       // console.log(evt.target)
     },
     endLinking(seed,evt){
@@ -286,19 +350,42 @@ export default {
           'background-color': "transparent"
         })
         $(sectionEl).css({
-          'background-color': "#ddd"
+          'background-color': "rgba(100,100,100,0.15)"
         })
       }
     },
 
     deleteSeed(targetSeed){
-      this.seeds.forEach(seed=>{
-        if (seed.nextNodeId==targetSeed.id){
-          seed.nextNodeId=null
-        }
-      })
-      db.ref("seeds").child( Object.keys(this.seeds)[Object.values(this.seeds).indexOf(targetSeed)] ).remove()
-      this.seeds=this.seeds.filter(s=>s!==targetSeed)
+
+      this.$confirm('確認要刪除節點嗎? 此動作不能回復。', '刪除確認', {
+        confirmButtonText: '確認',
+        cancelButtonText: '取消',
+        type: 'danger'
+      }).then(() => {
+        targetSeed.deleted=true
+        db.ref("seeds").child( targetSeed.uid ).remove()
+        this.seeds=this.seeds.filter(s=>s!==targetSeed)
+
+        this.seeds.forEach(seed=>{
+          if (seed.nextNodeId==targetSeed.id){
+            seed.nextNodeId=null
+          }
+        })
+        
+        this.focusedSeed=null
+
+        this.$message({
+          type: 'success',
+          message: '節點刪除成功!'
+        });
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        });          
+      });
+
+      
     },
     getNextNode(target){
       if (target){
@@ -345,14 +432,30 @@ export default {
       }
     },
     saveAllNode(){
-      this.seeds.forEach((seed,seedKey)=>{
-        if (seed.uid!=0){
+      this.seeds.forEach((seed)=>{
+        if (seed.uid!=0 && seed){
           db.ref("seeds").child(seed.uid).set({
             ...seed,
             updated_at: Date.now(),
           })
+
         }
       })
+      this.$message.success('儲存成功!');
+    },
+    handleBgClick(evt){
+      if (evt.target.classList.contains('seeds')){
+        this.focusedSeed=null
+        this.pinning=false
+        this.dragging=false
+      }
+    },
+    saveSeed(seed){
+      if (seed){
+        seed.updated_at = Date.now()
+        let postRef = db.ref("seeds/").child(seed.uid).set(seed)
+
+      }
     }
   },
   computed:{
@@ -431,13 +534,24 @@ export default {
       let postRef = db.ref("posts/").child(this.documentId).child("title")
       postRef.set(value)
     },
-    seeds(){
-      this.saveAllNode()
-       let postRef = db.ref("posts/").child(this.documentId).child("updated_at").set({
-          updated_at: Date.now(),
-       })
+    // seeds(){
+    //   // this.saveAllNode()
+    //    let postRef = db.ref("posts/").child(this.documentId).child("updated_at").set({
+    //       updated_at: Date.now(),
+    //    })
 
 
+    // },
+    focusedSeed(newSeed,oldSeed){
+      if (oldSeed && !oldSeed.deleted){
+        if (JSON.stringify(newSeed)!= JSON.stringify(oldSeed)){
+          if (oldSeed){
+            oldSeed.updated_at = Date.now()
+            let postRef = db.ref("seeds/").child(oldSeed.uid).set(oldSeed)
+          }
+        }
+
+      }
     }
     
   }
@@ -476,7 +590,38 @@ img
   
 .generate_essay
   flex: 3
-  padding: 30px 15px
+  padding-left: 10px
+  padding-right: 10px
+  .el-input,.el-textarea
+    padding-left: 0
+    padding-right: 0
+    
+  .el-textarea
+    border: none
+    width: 100%
+    margin-top: 10px
+    margin-bottom: 10px
+    textarea
+      border: none
+      letter-spacing: 0.5px
+      line-height: 1.8
+      padding-left: 0
+      padding-right: 0
+      background-color: transparent
+
+  .title
+    
+    font-size: 1.6rem
+    input
+      border: none
+      font-weight: bold
+      padding-left: 0
+      padding-right: 0
+      background-color: transparent
+
+    
+    
+  // padding: 30px 15px
   h1,h2,h3,h4,h5,h6
     // margin-bottom: 30px
   p
