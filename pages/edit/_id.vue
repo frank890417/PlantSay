@@ -323,7 +323,7 @@ export default {
      }
     },
     sortNode(){
-      let last
+      let last 
       let xrow =0
       
       this.linkedNodeList.forEach(next=>{
@@ -336,13 +336,15 @@ export default {
             next.p.y = next.p.y % (  window.innerHeight-200)
             next.p.x+=300
           }
-          // if (next){
-          //   this.$set(next,"updated",true)
-          // }
+          this.$set(next,"p",next.p)
+           db.ref("seeds").child(next.uid).child('p').set(next.p)
+          
         }
         last = next
       })
-      this.saveAllNode()
+      // this.$nextTick(()=>{
+      //   this.saveAllNode()
+      // })
     },
     focusSeed(seed){
       let sectionEl = document.querySelector(`.seed_${seed.id}_section`)
