@@ -97,6 +97,7 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
             div(v-if="seed.type=='image'")
               img(:src="seed.src")
               pre {{ seed.title }}
+              el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
               br
             div(v-else-if="seed.type=='link'")
               a(:href="seed.href" target="_blank") {{ seed.title }}
