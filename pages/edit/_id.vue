@@ -84,7 +84,8 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
       .row
         .col-sm-12
           div(v-for="seed in linkedNodeList",
-              :class = "['result_section',`seed_${seed.id}_section`]")
+              :class = "['result_section',`seed_${seed.id}_section`]",
+              @keyup="saveSeed(seed)")
             div(v-if="seed.type=='image'")
               img(:src="seed.src")
               pre {{ seed.title }}
@@ -170,7 +171,7 @@ export default {
           if ( JSON.stringify(seed[key])!= JSON.stringify(localSeed[key])){
 
             // console.log(( JSON.stringify(seed[key]),JSON.stringify(localSeed[key])))
-            console.log(`Updated Seed${seed.uid} :`+key)
+            // console.log(`Updated Seed${seed.uid} :`+key)
             this.$set( localSeed, key, seed[key] )
   
             
@@ -335,10 +336,13 @@ export default {
             next.p.y = next.p.y % (  window.innerHeight-200)
             next.p.x+=300
           }
-          this.$set(next,"updated",true)
+          // if (next){
+          //   this.$set(next,"updated",true)
+          // }
         }
         last = next
       })
+      this.saveAllNode()
     },
     focusSeed(seed){
       let sectionEl = document.querySelector(`.seed_${seed.id}_section`)
