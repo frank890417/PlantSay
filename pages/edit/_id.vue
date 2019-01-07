@@ -72,7 +72,7 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
             span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
           .placeholder-line(v-for="num in parseInt((seed.content||'').length/100)" v-else)
       .pin.inlet(@mouseup.prevent="endLinking(seed,$event)")
-      .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',0);saveSeed(seed)")
+      .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',-1);saveSeed(seed)")
     svg.graphs(@click="focusedSeed=null")
       
       polyline(v-for="line in linkLines",
@@ -230,6 +230,9 @@ export default {
     },
     getNextNode(target){
       if (target){
+        if (target.nextNodeId==-1){
+          return null
+        }
         return this.seeds.find(seed=>{
           if (seed && seed.id){
             return target.nextNodeId==seed.id
@@ -387,7 +390,7 @@ export default {
 
         this.seeds.forEach(seed=>{
           if (seed.nextNodeId==targetSeed.id){
-            seed.nextNodeId=0
+            seed.nextNodeId=-1
           }
         })
         
