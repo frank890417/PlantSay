@@ -1,15 +1,13 @@
 <template lang="pug">
 .page.page-index
+    navbar
     .container.pt-5
-        .row
-            .col-sm-12
-                navbar
         .row
             .col-sm-3
                 
                 div(v-if="!user")
-                    p.mb-5 登入以新增文章
-                        button.btn.btn-primary.float-right(@click="login") 登入
+                    h5.text-center.mb-3 登入以編輯文章
+                        //- button.btn.btn-primary.float-right(@click="login") 登入
                     #firebaseui-auth-container
                 div(v-else)
                     h4 Hello {{user.displayName}}
@@ -19,12 +17,12 @@
 
                 ul.list-group
                     li.list-group-item(v-for="(post,pid) in posts")
-                        nuxt-link(:to="'/post/'+pid"  v-if="post" target="_blank") 
-                            h4 {{post.title || "新文章"}}
+                        nuxt-link(:to="'/post/'+pid"  v-if="post", title="前往文章") 
+                            h5 {{post.title || "新文章"}}
                         label {{ post.authorName }} | {{ new Date(post.created_at).toLocaleString() }}
-                        .btn.btn-dark.float-right(@click="deletePost(pid)") 刪除
-                        nuxt-link.float-right(:to="'/edit/'+pid" v-if="post" ) 
-                            .btn.btn-light.mr-2 編輯
+                        .btn.btn-dark.float-right(@click="deletePost(pid)" v-if="user && post.authorId == user.uid") 刪除
+                        nuxt-link.float-right(:to="'/edit/'+pid" v-if="post && user" ) 
+                            .btn.btn-primary.mr-2 編輯
                     button.form-control.btn.btn-primary(@click="addPost", v-if="user") 新增文章
 
 </template>
@@ -147,26 +145,29 @@ export default {
             ui.start('#firebaseui-auth-container', uiConfig);
         },
         deletePost(pid){
+            if(this.posts[pid].authorId==this.user.uid){
+                this.$confirm('確認要刪除文章嗎? 此動作不能回復。', '刪除確認', {
+                    confirmButtonText: '確認',
+                    cancelButtonText: '取消',
+                    type: 'danger'
+                }).then(() => {
+                    // let seedsRef = db.ref("seeds").orderByChild("documentId").equalTo(pid)
+                    db.ref("posts").child( pid).remove()
+                    this.$message({
+                        type: 'success',
+                        message: '文章已删除'
+                    });          
+                
+                }).catch(() => {
+                    this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                    });          
+                });
 
-            this.$confirm('確認要刪除文章嗎? 此動作不能回復。', '刪除確認', {
-                confirmButtonText: '確認',
-                cancelButtonText: '取消',
-                type: 'danger'
-            }).then(() => {
-                // let seedsRef = db.ref("seeds").orderByChild("documentId").equalTo(pid)
-                db.ref("posts").child( pid).remove()
-                this.$message({
-                    type: 'success',
-                    message: '文章已删除'
-                });          
-             
-            }).catch(() => {
-                this.$message({
-                type: 'info',
-                message: '已取消删除'
-                });          
-            });
+            }
 
+            
             
         },
     },

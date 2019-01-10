@@ -5,26 +5,27 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
   .seeds#seeds_field(@dblclick="createSeed",
         @mousemove= "mouseMoving",
         @click="handleBgClick",
-        @click.right="handleBgClick")
+        @click.right="handleBgClick",
+        title="點擊兩下以新增區塊")
     .controls
       .row
-        .col-sm-3
-          input.form-control(v-if="post" v-model="post.title" placeholder="標題")
-        .col-sm-9
-          label.mr-3 檢視詳細內容
+        .col-sm-12
+          label.mr-3 檢視詳細內容 
             input(type="checkbox" v-model="postSettings.showNodeDetail")
-          label.mr-3 預覽
+          label.mr-3 預覽文章 
             input(type="checkbox" v-model="postSettings.showPreview")
-          label.mr-3 自動繞線
+          label.mr-3 自動繞線 
             input(type="checkbox" v-model="postSettings.showStepLine")
           button.btn.btn-primary.mr-3(@click="saveAllNode") 存檔
           button.btn.btn-secondary.mr-3(@click="sortNode") 整理
-          label.mr-5 字數統計: {{ allTextLength }}
+          label.mr-3 字數統計: {{ allTextLength }}
           
           label(v-if="allTextLength<1000") (短文)
           label(v-else-if="allTextLength<2000") (一般長度)
           label(v-else-if="allTextLength<3000") (中長文)
-          label(v-else="allTextLength<3000") (長文)]
+          label(v-else="allTextLength<3000") (長文)
+          label.float-right {{ post.authorName }}
+             
       
       //- label {{pinning}}
       
@@ -38,6 +39,7 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
       .delete-btn(@click="deleteSeed(seed) ")
         i.fa.fa-times
       .seed-content
+
         div.button-group.mb-3(v-if="getSeedEditStatus(seed) && seed.type!='start'")
           .btn.btn-light(@click="$set(seed,'type','text')", :class="{active: seed.type=='text'}")
             i.fa.fa-font
@@ -66,7 +68,7 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
 
         div(v-else)
           label(v-if="seed.type=='start'") 文章開頭
-          input.title.form-control(v-model="seed.title", :placeholder="(''+seed.content||'').slice(0,12)+'...' ")
+          input.title.form-control(v-model="seed.title", :placeholder="getTitlePlaceHolder(seed) ")
           div(v-if="getSeedEditStatus(seed)"  )
             el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
             span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
@@ -83,14 +85,15 @@ div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
     .container-fluid.mt-5
       .row
         .col-sm-12
-          h4.mb-5 文章預覽
+          h5.mb-5 文章預覽
           
             nuxt-link.float-right(v-if = "documentId" ,:to="'/post/'+documentId"  target="_blank") 
                 .btn.btn-dark 前往文章
-        
+          input.mb-3.title.form-control( v-if="post" v-model="post.title" placeholder="文章標題" style="font-size: 2.4rem")
+
       .close-preview(@click="postSettings.showPreview=false") X
       .row
-        .col-sm-12
+        .col-sm-12.pt-4
           div(v-for="seed in linkedNodeList",
               :class = "['result_section',`seed_${seed.id}_section`]",
               @keyup="saveSeed(seed)")
@@ -478,9 +481,23 @@ export default {
     saveSeed(seed){
       if (seed){
         seed.updated_at = Date.now()
-        let postRef = db.ref("seeds/").child(seed.uid).set(seed)
+        let seedRef = db.ref("seeds/").child(seed.uid)
+        seedRef.set(seed)
+
+        let postRef = db.ref("posts/").child(this.documentId).child("updated_at")
+        postRef.set(Date.now())
 
       }
+    },
+    getTitlePlaceHolder(seed){
+      if (!seed.title){
+        if (!seed.content){
+          return "段落標題"
+        }else{
+          return (''+seed.content||'').slice(0,12)+'...'
+        }
+      }
+      return ""
     }
   },
   computed:{
@@ -584,8 +601,6 @@ export default {
 </script>
 
 <style lang="sass">
-.page
-  height: 100%
 h1.logo
   position: fixed
   color: white
@@ -605,168 +620,168 @@ img
   justify-content: center
   align-items: center
   overflow: hidden
-  
-.seeds
-  flex: 8
-  overflow: scroll
-
-#seeds_field
-  overflow: scroll
-  
-.generate_essay
-  flex: 3
-  padding-left: 5px
-  padding-right: 5px
-  .el-input,.el-textarea
-    padding-left: 0
-    padding-right: 0
     
-  .el-textarea
-    border: none
-    width: 100%
-    margin-top: 10px
-    margin-bottom: 10px
-    textarea
-      border: none
-      letter-spacing: 0.5px
-      line-height: 1.8
+  .seeds
+    flex: 8
+    // overflow: scroll
+
+  #seeds_field
+    // overflow: scroll
+    
+  .generate_essay
+    flex: 3
+    padding-left: 5px
+    padding-right: 5px
+    .el-input,.el-textarea
       padding-left: 0
       padding-right: 0
-      background-color: transparent
-
-  .title
-    
-    font-size: 1.6rem
-    input
+      
+    .el-textarea
       border: none
-      font-weight: bold
-      padding-left: 0
-      padding-right: 0
-      background-color: transparent
+      width: 100%
+      margin-top: 10px
+      margin-bottom: 10px
+      textarea
+        border: none
+        letter-spacing: 0.5px
+        line-height: 1.8
+        padding-left: 0
+        padding-right: 0
+        background-color: transparent
 
-    
-    
-  // padding: 30px 15px
-  h1,h2,h3,h4,h5,h6
-    // margin-bottom: 30px
-  p
-    margin-top: 10px
-    margin-bottom: 10px
-  img
-    width: 100%
-    margin-bottom: 10px
-  height: 100%
-  background-color: #fff
-  overflow-y: scroll
-  position: relative
-  z-index: 100
-  box-shadow: 0px 0px 20px rgba(black,0.2)
-  
-.result_section
-  padding: 5px
-  position: relative
-    
-.close-preview
-  position: absolute
-  // left: -50px
-  left: 0
-  // width: 50px
-  padding: 5px
-  font-size: 12px
-  background-color: #f24
-  top: 0
-  cursor: pointer
-  &:hover
-    background-color: #f46
+    .title
+      
+      font-size: 1.6rem
+      input
+        border: none
+        font-weight: bold
+        padding-left: 0
+        padding-right: 0
+        background-color: transparent
 
+      
+      
+    // padding: 30px 15px
+    h1,h2,h3,h4,h5,h6
+      // margin-bottom: 30px
+    p
+      margin-top: 10px
+      margin-bottom: 10px
+    img
+      width: 100%
+      margin-bottom: 10px
+    height: 100%
+    background-color: #fff
+    overflow-y: scroll
+    position: relative
+    z-index: 100
+    box-shadow: 0px 0px 20px rgba(black,0.2)
     
-.seeds,.generate_essay
-  // border: 1px solid #000
-  height: 100%
-  position: relative
-  
-.controls
-  position: absolute
-  width: 100%
-  bottom: 0
-  padding: 10px 20px
-  color: white
-  background-color: rgba(#333,0.9)
-  z-index: 2000
-  
-svg.graphs
-  position: absolute
-  width: 100%
-  height: 100%
-  background-color: #222
-  z-index: -1
-  stroke: #aaa
-  stroke-width: 3px
-  polyline
-    fill: none
-    
-
-.seed
-  position: absolute
-  // border: solid 1px #ccc
-  border-radius: 2px
-  background-color: #fff
-  // padding: 20px 15px
-  box-shadow: 0px 0px 15px rgba(black,0.2)
-  // .content
-  padding: 10px 10px
-  transition: opacity 0.2s,border-color 0.2s
-  width: 260px
-
-  .delete-btn
+  .result_section
+    padding: 5px
+    position: relative
+      
+  .close-preview
     position: absolute
-    right: 10px
-    top: 10px
-    cursor: pointer
-    opacity: 0
-    transition: 0.5s
-    font-weight: 900
-  
-  .seed-content
-    // pointer-events: noneimg
-    user-drag: none
-    user-select: none
-  .pin
-    position: absolute
-    width: 10px
-    height: 10px
-    border-radius: 50%
-    background-color: #555
-    left: 50%
+    // left: -50px
+    left: 0
+    // width: 50px
+    padding: 5px
+    font-size: 12px
+    background-color: #f24
+    top: 0
     cursor: pointer
     &:hover
-      background-color: #f24
-  .inlet
-    top: -5px
-  .outlet
-    bottom: -5px
-  &.linked
-    // border: solid 4px #bbb
-    box-shadow: 0px 0px 0px 1px rgba(#888,0.7) ,0px 0px 5px rgba(black,0.2)
-    
-  &:hover
-    // background-color: #eee
-    opacity: 1
-    border-color: #777
-    .delete-btn
-      opacity: 1
-  .placeholder-line
-    height: 6px
-    background-color: #ddd
-    margin-bottom: 8px
+      background-color: #f46
 
-input.title
-  font-size: 1.4rem
-  background-color: transparent
-  border: none
-  border-bottom: 20px
-  margin-bottom: 10px
-  font-weight: 500
-  
+      
+  .seeds,.generate_essay
+    // border: 1px solid #000
+    height: 100%
+    position: relative
+    
+  .controls
+    position: absolute
+    width: 100%
+    bottom: 0
+    padding: 10px 20px
+    color: white
+    background-color: rgba(#333,0.9)
+    z-index: 2000
+    
+  svg.graphs
+    position: absolute
+    width: 100%
+    height: 100%
+    background-color: #222
+    z-index: -1
+    stroke: #aaa
+    stroke-width: 3px
+    polyline
+      fill: none
+      
+
+  .seed
+    position: absolute
+    // border: solid 1px #ccc
+    border-radius: 2px
+    background-color: #fff
+    // padding: 20px 15px
+    box-shadow: 0px 0px 15px rgba(black,0.2)
+    // .content
+    padding: 10px 10px
+    transition: opacity 0.2s,border-color 0.2s
+    width: 260px
+
+    .delete-btn
+      position: absolute
+      right: 10px
+      top: 10px
+      cursor: pointer
+      opacity: 0
+      transition: 0.5s
+      font-weight: 900
+    
+    .seed-content
+      // pointer-events: noneimg
+      user-drag: none
+      user-select: none
+    .pin
+      position: absolute
+      width: 10px
+      height: 10px
+      border-radius: 50%
+      background-color: #555
+      left: 50%
+      cursor: pointer
+      &:hover
+        background-color: #f24
+    .inlet
+      top: -5px
+    .outlet
+      bottom: -5px
+    &.linked
+      // border: solid 4px #bbb
+      box-shadow: 0px 0px 0px 1px rgba(#888,0.7) ,0px 0px 5px rgba(black,0.2)
+      
+    &:hover
+      // background-color: #eee
+      opacity: 1
+      border-color: #777
+      .delete-btn
+        opacity: 1
+    .placeholder-line
+      height: 6px
+      background-color: #ddd
+      margin-bottom: 8px
+
+  input.title
+    font-size: 1.4rem
+    background-color: transparent
+    border: none
+    border-bottom: 20px
+    margin-bottom: 10px
+    font-weight: 500
+    
 
 </style>

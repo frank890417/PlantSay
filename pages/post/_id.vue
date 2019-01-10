@@ -1,12 +1,11 @@
 <template lang="pug">
-div.page-post.pt-5
-  h1.logo 
-    nuxt-link(to="/") Organism v0.02
-  .container
+div.page.page-post.pt-5.pb-5
+  navbar
+  .container.mt-5
     .row
-      .col-sm-12.mt-5
+      .col-sm-12.mt-5.mb-5
         h1.mb-5 {{post.title}}
-        pre.text-right {{post.authorName}} {{ new Date(post.created_at).toLocaleString() }}
+        pre.text-right {{post.authorName}} {{ new Date(post.updated_at).toLocaleString() }}
         hr
         .generate_essay(v-html="generatedEssay")
 
@@ -15,7 +14,11 @@ div.page-post.pt-5
 <script>
 import $ from 'jquery'
 import { db } from '~/plugins/firebase.js'
+import navbar from '~/components/navbar'
 export default {
+  components: {
+    navbar
+  },
   asyncData ({ params }) {
       
       let seedsRef = db.ref("seeds").orderByChild("documentId").equalTo(params.id)
