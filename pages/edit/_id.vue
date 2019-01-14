@@ -1,10 +1,14 @@
 <template lang="pug">
 div
-  navbar(style="position: relative")
-  div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
+  //navbar(style="position: relative")
+  div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)",
+                    @keydown.shift.d.prevent="postSettings.showNodeDetail=!postSettings.showNodeDetail",
+                     @keydown.shift.p.prevent="postSettings.showPreview=!postSettings.showPreview",
+                     @keydown.shift.s.prevent="sortNode",
+                     )
     
-    //- h1.logo 
-      //- nuxt-link(to="/") Organism v0.0.2
+    h1.logo
+      nuxt-link(to="/") Organism v0.0.3
     .seeds#seeds_field(@dblclick="createSeed",
           @mousemove= "mouseMoving",
           @click="handleBgClick",
@@ -13,13 +17,13 @@ div
       .controls
         .row
           .col-sm-12
-            label.mr-3 檢視詳細內容 
+            label.mr-3 檢視內容 (shift+d)
               input(type="checkbox" v-model="postSettings.showNodeDetail")
-            label.mr-3 預覽文章 
+            label.mr-3 預覽文章 (shift+p)
               input(type="checkbox" v-model="postSettings.showPreview")
             label.mr-3 自動繞線 
               input(type="checkbox" v-model="postSettings.showStepLine")
-            button.btn.btn-primary.mr-3(@click="saveAllNode") 存檔
+            button.btn.btn-primary.mr-3.btn-save(@click="saveAllNode") 存檔
             button.btn.btn-secondary.mr-3(@click="sortNode") 整理
             label.mr-3 字數統計: {{ allTextLength }}
             
@@ -44,8 +48,8 @@ div
           i.fa.fa-times
         .seed-content
 
-          div.button-group.mb-3(v-if="getSeedEditStatus(seed) && seed.type!='start'")
-            .btn.btn-light(@click="$set(seed,'type','text')", :class="{active: seed.type=='text'}")
+          div.button-group.seed-type-selector.mb-3(v-if="getSeedEditStatus(seed) && seed.type!='start'")
+            .btn.btn-light(@click="$set(seed,'type','text')", :class="{active: seed.type=='text' || !seed.type }")
               i.fa.fa-font
             .btn.btn-light(@click="$set(seed,'type','image')", :class="{active: seed.type=='image'}")
               i.fa.fa-image
@@ -76,7 +80,7 @@ div
             //- input.title.form-control(v-model="seed.title", :placeholder="getTitlePlaceHolder(seed) ")
             div(v-if="getSeedEditStatus(seed)"  )
               el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
-              span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
+              span(v-if="postSettings.showNodeDetail") 字數: {{ (seed.content||'').length }}
             .placeholder-line(v-for="num in parseInt((seed.content||'').length/100)" v-else)
         .pin.inlet(@mouseup.prevent="endLinking(seed,$event)", @dblclick="removeLastNodeLink(seed)")
         .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',-1);saveSeed(seed)")
@@ -89,7 +93,7 @@ div
             )
         
     .generate_essay.animated.slideInRight(v-if="postSettings.showPreview" )
-      .container-fluid.mt-5
+      .container-fluid.mt-5.pb-5
         .row
           .col-sm-12
             h5.mb-5 文章預覽
@@ -115,7 +119,7 @@ div
                 b
               div(v-else)
                 
-                el-input.title(v-model = "seed.title" autosize, v-if="seed.title")
+                el-input.title(v-model = "seed.title" autosize v-if="seed.title" type="textarea" )
                 el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
                 br
             
@@ -127,6 +131,7 @@ import $ from 'jquery'
 import { db } from '~/plugins/firebase.js'
 import navbar from '~/components/navbar'
 export default {
+  // transition: "page", 
   components: {
     navbar},
   asyncData ({ params }) {
@@ -176,6 +181,7 @@ export default {
   },
 
   mounted(){
+    document.querySelector(".btn-save").focus()
     // console.log(this.seeds)
     this.$forceUpdate()
     let postRef = db.ref("posts").child(this.documentId)
@@ -320,8 +326,8 @@ export default {
           left: seed.p.x + "px",
           top: seed.p.y+ "px",
           cursor: seed.dragging?"grab":"initial",
-          opacity: (this.getNextNode(seed) || seed=== this.focusedSeed)?1:0.8,
-          'box-shadow': this.focusedSeed===seed?"0px 0px 0px 5px rgba(200,100,100,0.7),0px 0px 0px 5px rgba(30,30,30,0.9)":"0px 0px 5px rgba(0,0,0,0.3),0px 0px 0px 2px rgba(150,150,150,0.6)",
+          opacity: (this.getNextNode(seed) || seed=== this.focusedSeed)?1:(this.focusedSeed?0.5:0.85),
+          'box-shadow': this.focusedSeed===seed?"0px 0px 0px 5px rgba(200,100,100,0.7),0px 0px 45px 0px rgba(0,0,0,0.6)":"0px 0px 5px rgba(0,0,0,0.3),0px 0px 0px 2px rgba(150,150,150,0.6)",
           'z-index':  this.focusedSeed===seed?1000:seed.id
         }
       }
@@ -372,6 +378,7 @@ export default {
             xrow++
 
             next.p.y = next.p.y % (  window.innerHeight-200)
+            if (next.p.y<100){next.p.y=100}
             next.p.x+=300
           }
           this.$set(next,"p",next.p)
@@ -627,17 +634,19 @@ export default {
 h1.logo
   position: fixed
   color: white
-  left: 10px
+  left: 20px
   top: 10px
   font-weight: 600
   z-index: 200
+  a
+    color: rgba(white,0.3)
 img
   max-width: 100%
   width: 250px
   
 .page-post-editor
   width: 100%
-  height: calc(100vh - 40px)
+  height: calc(100vh)
   position: relative
   display: flex
   justify-content: center
@@ -780,7 +789,35 @@ img
       opacity: 0
       transition: 0.5s
       font-weight: 900
-    
+
+    //select type for seed
+    .seed-type-selector
+      position: absolute
+      top: -30px
+      left: 0px
+      opacity: 0
+      pointer-events: none
+      transition: 0.1s
+      z-index: 15
+      box-shadow: 0px 0px 5px rgba(black,0.3)
+      .btn
+        border: none
+        color: white
+        background-color: #333
+        border-radius: 3px 3px 0px 0px
+        // border-color: rgba(white,0.2)
+        // opacity: 0.5
+
+        &.active,&:hover
+          // border-color: rgba(white,1)
+          opacity: 1
+          background-color: #fff
+          color: black
+    &:hover .seed-type-selector
+      opacity: 1
+      pointer-events: initial
+
+
     .seed-content
       // pointer-events: noneimg
       user-drag: none

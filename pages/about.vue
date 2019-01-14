@@ -15,6 +15,7 @@
                         li 加入節點標題、文章標題多行功能
                         li 加入簡易操作說明
                         li 加入上下節點取消連結功能
+                        li 優化編輯介面 - 節點種類改為hover時顯示
                     h4 2019/1/10 v0.0.3
                     ol
                         li 調整刪除權限，僅能刪除非本人文章
@@ -43,6 +44,7 @@
 <script>
 import navbar from '~/components/navbar'
 export default {
+    // transition: "page",
     components: {
         navbar
     },

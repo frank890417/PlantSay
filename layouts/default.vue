@@ -7,8 +7,25 @@
   
   <!-- </div> -->
 </template>
+<script>
+export default {
+  // transition (to, from) {
+    // return 'page'
+    // if (!from) return 'slide-left'
+    // return +to.query.page < +from.query.page ? 'slide-right' : 'slide-left'
+  // }
+}
+</script>
+
 
 <style lang="sass">
+
+// .page-enter-active, .page-leave-active 
+//   transition: opacity .1s
+
+// .page-enter, .page-leave-to /* .fade-leave-active below version 2.1.8 */ 
+//   opacity: 0
+
 html,body
   font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif
   font-size: 13px

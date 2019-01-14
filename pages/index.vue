@@ -3,7 +3,7 @@
     navbar
     .container.pt-5
         .row
-            .col-sm-3
+            .col-sm-4.leftbar
                 
                 div(v-if="!user")
                     h5.text-center.mb-3 登入以編輯文章
@@ -13,17 +13,26 @@
                     h4 Hello {{user.displayName}}
                     br
                     button.btn.btn-primary(@click="logout") 登出
-            .col-sm-9 
+                
+                h4.mt-5 2019/1/14  
+                h5 v0.0.4
+                ol
+                    li 加入節點標題、文章標題多行功能
+                    li 加入簡易操作說明
+                    li 加入上下節點取消連結功能
+                    li 優化編輯介面 - 節點種類改為hover時顯示
+                    li 改為只能看到自己新增與示範用的文章
+            .col-sm-8
 
                 ul.list-group
-                    li.list-group-item(v-for="(post,pid) in posts")
-                        nuxt-link(:to="'/post/'+pid"  v-if="post", title="前往文章") 
+                    li.list-group-item(v-for="(post,pid) in myposts")
+                        nuxt-link(:to="'/post/'+post.uid"  v-if="post", title="前往文章") 
                             h5 {{post.title || "新文章"}}
                         label {{ post.authorName }} | {{ new Date(post.created_at).toLocaleString() }}
-                        .btn.btn-dark.float-right(@click="deletePost(pid)" v-if="user && post.authorId == user.uid") 刪除
-                        nuxt-link.float-right(:to="'/edit/'+pid" v-if="post && user" ) 
+                        .btn.btn-dark.float-right(@click="deletePost(post.uid)" v-if="user && post.authorId == user.uid") 刪除
+                        nuxt-link.float-right(:to="'/edit/'+post.uid" v-if="post && user" ) 
                             .btn.btn-primary.mr-2 編輯
-                    button.form-control.btn.btn-primary(@click="addPost", v-if="user") 新增文章
+                    button.mt-3.new-post.btn.btn-primary(@click="addPost", v-if="user") 新增文章
 
 </template>
 
@@ -58,6 +67,7 @@ let uiConfig = {
         }
 
 export default {
+    // transition: "page",
     components: {
         navbar
     },
@@ -106,13 +116,14 @@ export default {
             // document.getElementById('sign-in-status').textContent = 'Signed out';
             // document.getElementById('sign-in').textContent = 'Sign in';
             // document.getElementById('account-details').textContent = 'null';
+
+            if (!this.user){
+                ui.start('#firebaseui-auth-container', uiConfig);
+            }
         }
         }, function(error) {
             console.log(error);
         });
-        if (!this.user){
-            ui.start('#firebaseui-auth-container', uiConfig);
-        }
     },
     methods:{
         addPost(){
@@ -142,7 +153,10 @@ export default {
             });
         },
         login(){
-            ui.start('#firebaseui-auth-container', uiConfig);
+            if (!this.user){
+                ui.start('#firebaseui-auth-container', uiConfig);
+                
+            }
         },
         deletePost(pid){
             if(this.posts[pid].authorId==this.user.uid){
@@ -172,13 +186,53 @@ export default {
         },
     },
     computed:{
-        ...mapState(['user'])
+        ...mapState(['user']),
+        myposts(){
+            if (this.posts){
+                let convertedArray = Object.keys(this.posts).map(key=>
+                    ({ ...this.posts[key] , uid: key })
+                )
+
+                if (this.user ){
+                    if (this.user.uid=="cJk2H1jRw5Rr7Pfrxf6H3Bzyn642"){
+                        return convertedArray
+                    }else{
+                        return convertedArray.filter(post=>post.authorId==this.user.uid || post.authorId=="cJk2H1jRw5Rr7Pfrxf6H3Bzyn642")
+                    }
+                }else{
+                    return convertedArray.filter(post=>post.authorId=="cJk2H1jRw5Rr7Pfrxf6H3Bzyn642")
+                }
+
+            }else{
+                return []
+            }
+        }
     }
 }
 </script>
 
 <style lang="sass">
 .page-index
+    // background-color: #333
+    //.leftbar
+        color: white
+    ol
+        padding-left: 15px
     .container
         // max-width: 1400px
+    .list-group-item
+        // background-color: #eee
+        margin-bottom: 5px
+        border-radius: 2px
+        box-shadow: 0px 0px 5px rgba(black,0.1)
+        transition: 0.5s
+        &:hover
+            // transform: translateY(-1px)
+            background-color: #fff
+    .btn.new-post
+        width: 100%
+        font-size: 1.3rem
+        max-height: initial
+        padding: 15px
+
 </style>

@@ -31,8 +31,10 @@ export default {
   font-size: 15px
   padding: 0px 10px
   .navbar-brand
-    font-size: 1.6rem
+    font-size: 1.8rem
     font-weight: bold
   .navbar-nav
     width: 200px
+  &.navbar-dark.bg-dark
+    // background-color: #333
 </style>

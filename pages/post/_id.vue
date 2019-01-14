@@ -16,6 +16,7 @@ import $ from 'jquery'
 import { db } from '~/plugins/firebase.js'
 import navbar from '~/components/navbar'
 export default {
+  // transition: "page",
   components: {
     navbar
   },
