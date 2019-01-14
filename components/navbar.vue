@@ -1,7 +1,7 @@
 <template lang="pug">
 nav.navbar.navbar-expand-md.navbar-dark.fixed-top.bg-dark
   .container
-    nuxt-link.navbar-brand(to='/') Organism 測試版 0.0.3
+    nuxt-link.navbar-brand(to='/') Organism 測試版 0.0.4
     button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarCollapse', aria-controls='navbarCollapse', aria-expanded='false', aria-label='Toggle navigation')
       span.navbar-toggler-icon
     #navbarCollapse.collapse.navbar-collapse

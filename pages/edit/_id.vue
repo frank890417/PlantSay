@@ -9,8 +9,9 @@ div
                      ) 
     
     h1.logo
-      nuxt-link(to="/") Organism v0.0.3
-    .seeds#seeds_field(@dblclick="createSeed",
+      nuxt-link(to="/") Organism v0.0.4
+    .seeds#seeds_field(
+          @dblclick.right="createSeed",
           @mousemove= "mouseMoving",
           @click="handleBgClick",
           @click.right="handleBgClick",
@@ -191,7 +192,8 @@ export default {
                       x: 0,y: 0
                     },
                     endPos: null
-                  }
+                  },
+                  lastClickTimeStamp: 0
               }
       })
     
@@ -250,7 +252,8 @@ export default {
         取消連結: 雙擊節點 / 群組選取`,"使用說明")
     },
     createSeed(evt){
-      if ($(evt.target).attr('id')=='seeds_field'){
+      console.log(evt.target)
+      if ($(evt.target).hasClass('graphs')){
         let newSeedKey = db.ref().child('seeds').push().key;
         let nObj = {
             p: {x:evt.x ,y: evt.y},
@@ -536,6 +539,12 @@ export default {
         
         // this.selection.selecting=false
       }
+      
+      console.log( Date.now() - this.lastClickTimeStamp)
+      if ( Date.now() - this.lastClickTimeStamp<200){
+        this.createSeed(evt)
+      }
+      this.lastClickTimeStamp =Date.now()
     },
     saveSeed(seed){
       if (seed){
