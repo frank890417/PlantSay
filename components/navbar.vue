@@ -29,8 +29,9 @@ export default {
   display: flex
   width: 100%
   font-size: 15px
+  padding: 0px 10px
   .navbar-brand
-    font-size: 2rem
+    font-size: 1.6rem
     font-weight: bold
   .navbar-nav
     width: 200px

@@ -1,125 +1,134 @@
 <template lang="pug">
-div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
-  h1.logo 
-    nuxt-link(to="/") Organism v0.0.2
-  .seeds#seeds_field(@dblclick="createSeed",
-        @mousemove= "mouseMoving",
-        @click="handleBgClick",
-        @click.right="handleBgClick",
-        title="點擊兩下以新增區塊")
-    .controls
-      .row
-        .col-sm-12
-          label.mr-3 檢視詳細內容 
-            input(type="checkbox" v-model="postSettings.showNodeDetail")
-          label.mr-3 預覽文章 
-            input(type="checkbox" v-model="postSettings.showPreview")
-          label.mr-3 自動繞線 
-            input(type="checkbox" v-model="postSettings.showStepLine")
-          button.btn.btn-primary.mr-3(@click="saveAllNode") 存檔
-          button.btn.btn-secondary.mr-3(@click="sortNode") 整理
-          label.mr-3 字數統計: {{ allTextLength }}
-          
-          label(v-if="allTextLength<1000") (短文)
-          label(v-else-if="allTextLength<2000") (一般長度)
-          label(v-else-if="allTextLength<3000") (中長文)
-          label(v-else="allTextLength<3000") (長文)
-          label.float-right {{ post.authorName }}
-             
-      
-      //- label {{pinning}}
-      
-    .seed(v-for="seed in seeds",
-          :style="getSeedStyle(seed)",
-          @mousedown="startDragging(seed,$event)",
-          @mouseup="endDragging(seed,$event)",
-          @click="focusSeed(seed)"
-          :id="'node_'+seed.id",
-          :class="{linked: getNextNode(seed)}")
-      .delete-btn(@click="deleteSeed(seed) ")
-        i.fa.fa-times
-      .seed-content
-
-        div.button-group.mb-3(v-if="getSeedEditStatus(seed) && seed.type!='start'")
-          .btn.btn-light(@click="$set(seed,'type','text')", :class="{active: seed.type=='text'}")
-            i.fa.fa-font
-          .btn.btn-light(@click="$set(seed,'type','image')", :class="{active: seed.type=='image'}")
-            i.fa.fa-image
-          .btn.btn-light(@click="$set(seed,'type','link')", :class="{active: seed.type=='link'}")
-            i.fa.fa-link
-          
-
-          
-          //select(v-model="seed.type")
-            option(v-for='type in nodeTypes' :value="type") {{type}}
-        //- h5 {{seed.title || "New Seed #" + seed.id}}
-        div(v-if="seed.type=='image'")
-          img(:src="seed.src")
-          div(v-if="getSeedEditStatus(seed)")
-            input.form-control(v-model="seed.src" placeholder="Picture Link")
-            input.form-control(v-model="seed.title" placeholder="Title")
-            el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
-            span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
-          //- textarea.form-control(v-model="seed.content" v-if="postSettings.showNodeDetail" rows=2)
-        
-        div(v-else-if="seed.type=='link'")
-          input.title.form-control(v-model="seed.title", placeholder="標題")
-          input.form-control(v-model="seed.href" placeholder="Link")
-
-        div(v-else)
-          label(v-if="seed.type=='start'") 文章開頭
-          input.title.form-control(v-model="seed.title", :placeholder="getTitlePlaceHolder(seed) ")
-          div(v-if="getSeedEditStatus(seed)"  )
-            el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
-            span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
-          .placeholder-line(v-for="num in parseInt((seed.content||'').length/100)" v-else)
-      .pin.inlet(@mouseup.prevent="endLinking(seed,$event)")
-      .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',-1);saveSeed(seed)")
-    svg.graphs(@click="focusedSeed=null")
-      
-      polyline(v-for="line in linkLines",
-           :points="line.poly"
-           stroke-linejoin="round")
-      
-  .generate_essay(v-if="postSettings.showPreview" )
-    .container-fluid.mt-5
-      .row
-        .col-sm-12
-          h5.mb-5 文章預覽
-          
-            nuxt-link.float-right(v-if = "documentId" ,:to="'/post/'+documentId"  target="_blank") 
-                .btn.btn-dark 前往文章
-          input.mb-3.title.form-control( v-if="post" v-model="post.title" placeholder="文章標題" style="font-size: 2.4rem")
-
-      .close-preview(@click="postSettings.showPreview=false") X
-      .row
-        .col-sm-12.pt-4
-          div(v-for="seed in linkedNodeList",
-              :class = "['result_section',`seed_${seed.id}_section`]",
-              @keyup="saveSeed(seed)")
-            div(v-if="seed.type=='image'")
-              img(:src="seed.src")
-              pre {{ seed.title }}
-              el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
-              br
-            div(v-else-if="seed.type=='link'")
-              a(:href="seed.href" target="_blank") {{ seed.title }}
-              el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
-              b
-            div(v-else)
+div
+  navbar(style="position: relative")
+  div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)"  )
+    
+    //- h1.logo 
+      //- nuxt-link(to="/") Organism v0.0.2
+    .seeds#seeds_field(@dblclick="createSeed",
+          @mousemove= "mouseMoving",
+          @click="handleBgClick",
+          @click.right="handleBgClick",
+          title="點擊兩下以新增區塊")
+      .controls
+        .row
+          .col-sm-12
+            label.mr-3 檢視詳細內容 
+              input(type="checkbox" v-model="postSettings.showNodeDetail")
+            label.mr-3 預覽文章 
+              input(type="checkbox" v-model="postSettings.showPreview")
+            label.mr-3 自動繞線 
+              input(type="checkbox" v-model="postSettings.showStepLine")
+            button.btn.btn-primary.mr-3(@click="saveAllNode") 存檔
+            button.btn.btn-secondary.mr-3(@click="sortNode") 整理
+            label.mr-3 字數統計: {{ allTextLength }}
+            
+            label(v-if="allTextLength<1000") (短文)
+            label(v-else-if="allTextLength<2000") (一般長度)
+            label(v-else-if="allTextLength<3000") (中長文)
+            label(v-else="allTextLength<3000") (長文)
+            label.float-right {{ post.authorName }}
+            button.btn.btn-secondary.mr-3.float-right(@click="showUserGuide") 使用說明
               
-              el-input.title(v-model = "seed.title" autosize, v-if="seed.title")
-              el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
-              br
+        
+        //- label {{pinning}}
+        
+      .seed(v-for="seed in seeds",
+            :style="getSeedStyle(seed)",
+            @mousedown="startDragging(seed,$event)",
+            @mouseup="endDragging(seed,$event)",
+            @click="focusSeed(seed)"
+            :id="'node_'+seed.id",
+            :class="{linked: getNextNode(seed)}")
+        .delete-btn(@click="deleteSeed(seed) ")
+          i.fa.fa-times
+        .seed-content
+
+          div.button-group.mb-3(v-if="getSeedEditStatus(seed) && seed.type!='start'")
+            .btn.btn-light(@click="$set(seed,'type','text')", :class="{active: seed.type=='text'}")
+              i.fa.fa-font
+            .btn.btn-light(@click="$set(seed,'type','image')", :class="{active: seed.type=='image'}")
+              i.fa.fa-image
+            .btn.btn-light(@click="$set(seed,'type','link')", :class="{active: seed.type=='link'}")
+              i.fa.fa-link
+            
+
+            
+            //select(v-model="seed.type")
+              option(v-for='type in nodeTypes' :value="type") {{type}}
+          //- h5 {{seed.title || "New Seed #" + seed.id}}
+          div(v-if="seed.type=='image'")
+            img(:src="seed.src")
+            div(v-if="getSeedEditStatus(seed)")
+              input.form-control(v-model="seed.src" placeholder="Picture Link")
+              input.form-control(v-model="seed.title" placeholder="Title")
+              el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
+              span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
+            //- textarea.form-control(v-model="seed.content" v-if="postSettings.showNodeDetail" rows=2)
           
-          //- .result(v-html="generatedEssay")
+          div(v-else-if="seed.type=='link'")
+            input.title.form-control(v-model="seed.title", placeholder="標題")
+            input.form-control(v-model="seed.href" placeholder="Link")
+
+          div(v-else)
+            label(v-if="seed.type=='start'") 文章開頭
+            el-input.seed-title.mb-3(type="textarea" v-model="seed.title", :placeholder="getTitlePlaceHolder(seed) " autosize)
+            //- input.title.form-control(v-model="seed.title", :placeholder="getTitlePlaceHolder(seed) ")
+            div(v-if="getSeedEditStatus(seed)"  )
+              el-input(type="textarea" v-model="seed.content"  rows=4, placeholder="段落內容")
+              span(v-if="postSettings.showNodeDetail") 字數：{{ (seed.content||'').length }}
+            .placeholder-line(v-for="num in parseInt((seed.content||'').length/100)" v-else)
+        .pin.inlet(@mouseup.prevent="endLinking(seed,$event)", @dblclick="removeLastNodeLink(seed)")
+        .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',-1);saveSeed(seed)")
+      svg.graphs(@click="focusedSeed=null")
+        
+        polyline(v-for="line in linkLines",
+            :points="line.poly"
+            stroke-linejoin="round",
+            @dblclick="removeLink(line)"
+            )
+        
+    .generate_essay.animated.slideInRight(v-if="postSettings.showPreview" )
+      .container-fluid.mt-5
+        .row
+          .col-sm-12
+            h5.mb-5 文章預覽
+            
+              nuxt-link.float-right(v-if = "documentId" ,:to="'/post/'+documentId"  target="_blank") 
+                  .btn.btn-dark 前往文章
+            el-input.title(type="textarea" v-if="post" v-model="post.title" placeholder="文章標題" style="font-size: 2rem" autosize)
+
+        .close-preview(@click="postSettings.showPreview=false") X
+        .row
+          .col-sm-12.pt-4.generated-content
+            div(v-for="seed in linkedNodeList",
+                :class = "['result_section',`seed_${seed.id}_section`]",
+                @keyup="saveSeed(seed)")
+              div(v-if="seed.type=='image'")
+                img(:src="seed.src")
+                pre {{ seed.title }}
+                el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
+                br
+              div(v-else-if="seed.type=='link'")
+                a(:href="seed.href" target="_blank") {{ seed.title }}
+                el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
+                b
+              div(v-else)
+                
+                el-input.title(v-model = "seed.title" autosize, v-if="seed.title")
+                el-input( type="textarea" v-model="seed.content" v-if='seed.content' autosize)
+                br
+            
   
 </template>
 
 <script>
 import $ from 'jquery'
 import { db } from '~/plugins/firebase.js'
+import navbar from '~/components/navbar'
 export default {
+  components: {
+    navbar},
   asyncData ({ params }) {
       let seedsRef = db.ref("seeds").orderByChild("documentId").equalTo(params.id)
       return seedsRef.once("value")
@@ -212,6 +221,10 @@ export default {
 
   },
   methods: {
+    showUserGuide(){
+      this.$alert(`新增Block: 雙擊背景 / 
+        取消連結: 雙擊節點`,"使用說明")
+    },
     createSeed(evt){
       if ($(evt.target).attr('id')=='seeds_field'){
         let newSeedKey = db.ref().child('seeds').push().key;
@@ -297,6 +310,9 @@ export default {
     },
     updatePos(seed){
       console.log(seed)
+    },
+    removeLink(line){
+      this.line.fromNode.nextNodeId=-1
     },
     getSeedStyle(seed){
       if (seed){
@@ -494,7 +510,7 @@ export default {
         if (!seed.content){
           return "段落標題"
         }else{
-          return (''+seed.content||'').slice(0,12)+'...'
+          return (''+seed.content||'').slice(0,20)+'...'
         }
       }
       return ""
@@ -525,6 +541,12 @@ export default {
       })
       return result
     },
+    removeLastNodeLink(target){
+      let upperSeed = this.seeds.find(seed=>seed.nextNodeId==target.id)
+      if (upperSeed){
+        upperSeed.nextNodeId=-1
+      }
+    },
     allTextLength(){
       return this.linkedNodeList.reduce((total,seed)=>{
         return total+(seed.content || "").length
@@ -550,6 +572,7 @@ export default {
     
   },
   watch: {
+    // monitor editing and save automatically
     "postSettings.showNodeDetail": function(){
       let postRef = db.ref("posts/").child(this.documentId).child("postSettings")
       postRef.set(this.postSettings)
@@ -614,7 +637,7 @@ img
   
 .page-post-editor
   width: 100%
-  height: 100vh
+  height: calc(100vh - 40px)
   position: relative
   display: flex
   justify-content: center
@@ -631,27 +654,33 @@ img
   .generate_essay
     flex: 3
     padding-left: 5px
-    padding-right: 5px
-    .el-input,.el-textarea
-      padding-left: 0
-      padding-right: 0
-      
-    .el-textarea
-      border: none
-      width: 100%
-      margin-top: 10px
-      margin-bottom: 10px
+    padding-right: 0.5px
+    .title 
       textarea
+        font-weight: bold
         border: none
-        letter-spacing: 0.5px
-        line-height: 1.8
+
+    .generated-content
+      .el-input,.el-textarea
         padding-left: 0
         padding-right: 0
-        background-color: transparent
+      
+      .el-textarea
+        border: none
+        width: 100%
+        margin-top: 10px
+        margin-bottom: 10px
+        textarea
+          border: none
+          letter-spacing: 0.5px
+          line-height: 1.8
+          padding-left: 0
+          padding-right: 0
+          background-color: transparent
 
     .title
       
-      font-size: 1.6rem
+      font-size: 1.5rem
       input
         border: none
         font-weight: bold
@@ -732,6 +761,16 @@ img
     padding: 10px 10px
     transition: opacity 0.2s,border-color 0.2s
     width: 260px
+    .seed-title
+      font-size: 1.3rem
+      textarea
+        font-weight: bold
+        letter-spacing: 0.05em
+        background-color: transparent
+        border: none
+        padding: 0px 5px
+      .el-textarea
+        min-height: 1.4rem
 
     .delete-btn
       position: absolute
