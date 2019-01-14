@@ -23,9 +23,9 @@ div
       .controls
         .row
           .col-sm-12
-            label.mr-3 檢視內容 (shift+d)
+            label.mr-3 檢視內容
               input(type="checkbox" v-model="postSettings.showNodeDetail")
-            label.mr-3 預覽文章 (shift+p)
+            label.mr-3 預覽文章
               input(type="checkbox" v-model="postSettings.showPreview")
             label.mr-3 自動繞線 
               input(type="checkbox" v-model="postSettings.showStepLine")
@@ -247,7 +247,7 @@ export default {
   methods: {
     showUserGuide(){
       this.$alert(`新增Block: 雙擊背景 / 
-        取消連結: 雙擊節點`,"使用說明")
+        取消連結: 雙擊節點 / 群組選取`,"使用說明")
     },
     createSeed(evt){
       if ($(evt.target).attr('id')=='seeds_field'){
@@ -305,16 +305,15 @@ export default {
       let deltaY = evt.pageY- this.mousePos.y
       this.mousePos.x =evt.pageX
       this.mousePos.y =evt.pageY
-      if ( this.focusedSeed && this.dragging) {
-        if (!this.selection.selectedSeeds){
-          this.focusedSeed.p.x+=deltaX
-          this.focusedSeed.p.y+=deltaY
-          db.ref("seeds").child(this.focusedSeed.uid).child('p').set(this.focusedSeed.p)
+      if (  this.dragging) {
+        if (!this.selection.selectedSeeds  || !this.selection.selectedSeeds.length){
+          if (this.focusedSeed){
+            this.focusedSeed.p.x+=deltaX
+            this.focusedSeed.p.y+=deltaY
+            db.ref("seeds").child(this.focusedSeed.uid).child('p').set(this.focusedSeed.p)
 
-          db.ref("seeds").child(this.focusedSeed.uid).child('p').set(this.focusedSeed.p)
-
+          }
         }else{
-          console.log("group dragging")
           this.selection.selectedSeeds.forEach(seed=>{
             seed.p.x+=deltaX
             seed.p.y+=deltaY
@@ -334,6 +333,9 @@ export default {
         // this.focusedSeed=null
       }
       this.dragging=false
+      if (this.selection.selecting){
+        this.endSelection()
+      }
       // console.log(evt.target)
     },
     endLinking(seed,evt){
@@ -530,7 +532,9 @@ export default {
         this.focusedSeed=null
         this.pinning=false
         this.dragging=false
-        this.selection.selecting=false
+        this.selection.selectedSeeds=null
+        
+        // this.selection.selecting=false
       }
     },
     saveSeed(seed){
@@ -566,37 +570,39 @@ export default {
       })
     },
     endSelection(){
-      let selRect = this.selectionRect
-      var pointInRange = (x,y)=>{
-        return selRect.x < x && selRect.x+selRect.width>x && 
-               selRect.y < y && selRect.y+selRect.height>y
-      }
-      console.log("end selection")
-      let selectedSeeds = this.seeds.filter(f=>f).filter(seed=>{
-        let outletY = this.getPinPositions(seed).outlet.y
-        return (pointInRange(seed.p.x,seed.p.y) || pointInRange(seed.p.x,outletY) ||
-            pointInRange(seed.p.x+200,seed.p.y) || pointInRange(seed.p.x+200,outletY) ) 
-      })
       // console.log(selectedSeeds)
+      this.$set(this.selection,"selectedSeeds",this.selectedSeeds)
       this.$set(this.selection,"selecting",false)
-      this.$set(this.selection,"selectedSeeds",selectedSeeds)
     },
+
     isSelectedInGroup(seed){
       if (this.selection.selectedSeeds){
         return this.selection.selectedSeeds.find(s=>s===seed)
       }
+      // if (this.selectedSeeds){
+      return this.selectedSeeds.find(s=>s===seed)
+      // }
     }
 
   },
   computed:{
     selectedSeeds(){
+      // console.log("selecting")
+      if (!this.selectionRect){
+        return []
+      }
+      let selRect = this.selectionRect
+      var pointInRange = (x,y)=>{
+        return selRect.x < x && selRect.x+selRect.width>x && 
+               selRect.y < y && selRect.y+selRect.height>y
+      }
+      // console.log("end selection")
       let selectedSeeds = this.seeds.filter(f=>f).filter(seed=>{
         let outletY = this.getPinPositions(seed).outlet.y
         return (pointInRange(seed.p.x,seed.p.y) || pointInRange(seed.p.x,outletY) ||
             pointInRange(seed.p.x+200,seed.p.y) || pointInRange(seed.p.x+200,outletY) ) 
       })
-      this.$set(this.selection,"selectedSeeds",selectedSeeds)
-
+      return selectedSeeds
     },
     selectionRect(){
        if (this.selection.selecting){
@@ -887,6 +893,7 @@ img
     box-shadow: 0px 0px 5px rgba(0,0,0,0.3),0px 0px 0px 2px rgba(150,150,150,0.6)
     // .content
     padding: 10px 10px
+    padding-top: 15px
     transition: opacity 0.2s,border-color 0.2s
     width: 260px
     .seed-title
@@ -941,6 +948,7 @@ img
       // pointer-events: noneimg
       user-drag: none
       user-select: none
+      
     .pin
       position: absolute
       width: 10px
@@ -973,6 +981,7 @@ img
       height: 6px
       background-color: #ddd
       margin-bottom: 8px
+      pointer-events: none
 
   input.title
     font-size: 1.4rem
