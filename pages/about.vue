@@ -1,7 +1,7 @@
 <template lang="pug">
 .page.page-about
     navbar
-    .container.pt-4
+    .container.pt-5.pb-5
         .row
             .col-sm-9.pt-3
                 h2 關於 Organism
@@ -9,6 +9,7 @@
                 p Organism是節點版本的文章編輯器，把內容拆成散落的片段進行組合跟寫作
                 p 非線性寫作平台，用節點的方式寫作跟管理知識內容，避免文章很難一路寫到底的問題，把一些骨架跟靈感抓出來之後再湊起來。
                 p 很適合拿來邊教材，讓一張圖輸出不同個文章結構樹，比如 圖裡面有ABCDE，你可以產生兩個文章連結給不同的社群 一個是ABE 一個是完整的ABCDE，給付費訂閱之類的使用，還有作者在看後台的時候，看得到section即時流動的讀者們
+                img(src="/static/img/demo.png")
                 div.mt-5.mb-3
                     h4 2019/1/10 v0.0.4
                     ol

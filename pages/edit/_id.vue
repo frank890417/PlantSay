@@ -2,10 +2,11 @@
 div
   //navbar(style="position: relative")
   div.page-post-editor( @keyup.enter="saveSeed(focusedSeed)",
-                    @keydown.shift.d.prevent="postSettings.showNodeDetail=!postSettings.showNodeDetail",
-                     @keydown.shift.p.prevent="postSettings.showPreview=!postSettings.showPreview",
-                     @keydown.shift.s.prevent="sortNode",
-                     )
+                      v-if="postSettings"
+                      @keydown.shift.d.prevent="postSettings.showNodeDetail=!postSettings.showNodeDetail",
+                      @keydown.shift.p.prevent="postSettings.showPreview=!postSettings.showPreview",
+                      @keydown.shift.s.prevent="sortNode",
+                     ) 
     
     h1.logo
       nuxt-link(to="/") Organism v0.0.3
@@ -13,7 +14,12 @@ div
           @mousemove= "mouseMoving",
           @click="handleBgClick",
           @click.right="handleBgClick",
-          title="點擊兩下以新增區塊")
+          title="點擊兩下以新增區塊",
+          
+          @mousedown="startSelection",
+          @mouseup="endSelection"
+        ) 
+
       .controls
         .row
           .col-sm-12
@@ -39,11 +45,13 @@ div
         
       .seed(v-for="seed in seeds",
             :style="getSeedStyle(seed)",
-            @mousedown="startDragging(seed,$event)",
-            @mouseup="endDragging(seed,$event)",
+            @mousedown.stop="startDragging(seed,$event)",
+            @mouseup.stop="endDragging(seed,$event)",
             @click="focusSeed(seed)"
             :id="'node_'+seed.id",
-            :class="{linked: getNextNode(seed)}")
+            :class="{linked: getNextNode(seed), 'group-selected': isSelectedInGroup(seed),focused: focusedSeed===seed }")
+
+            
         .delete-btn(@click="deleteSeed(seed) ")
           i.fa.fa-times
         .seed-content
@@ -84,14 +92,17 @@ div
             .placeholder-line(v-for="num in parseInt((seed.content||'').length/100)" v-else)
         .pin.inlet(@mouseup.prevent="endLinking(seed,$event)", @dblclick="removeLastNodeLink(seed)")
         .pin.outlet(@mousedown.prevent="startLinking(seed,$event)", @dblclick="$set(seed,'nextNodeId',-1);saveSeed(seed)")
-      svg.graphs(@click="focusedSeed=null")
+      svg.graphs(@click="focusedSeed=null",)
         
         polyline(v-for="line in linkLines",
             :points="line.poly"
             stroke-linejoin="round",
             @dblclick="removeLink(line)"
             )
-        
+        rect(v-if="selectionRect" :x="selectionRect.x" :y ="selectionRect.y",
+              :width="selectionRect.width" :height="selectionRect.height")
+
+
     .generate_essay.animated.slideInRight(v-if="postSettings.showPreview" )
       .container-fluid.mt-5.pb-5
         .row
@@ -174,16 +185,23 @@ export default {
                   fullScreen: false,
                   focusedSeed: null,
                   pinning: false,
-                  nodeTypes: ['start','text','image']
+                  nodeTypes: ['start','text','image'],
+                  selection: {
+                    startPos: {
+                      x: 0,y: 0
+                    },
+                    endPos: null
+                  }
               }
       })
     
   },
 
   mounted(){
-    document.querySelector(".btn-save").focus()
+    // document.querySelector(".btn-save").focus()
     // console.log(this.seeds)
     this.$forceUpdate()
+
     let postRef = db.ref("posts").child(this.documentId)
     postRef.on("value",(snapshot)=>{
       this.post=snapshot.val()
@@ -268,6 +286,7 @@ export default {
     },
     startDragging(seed,evt){
       this.setFocus(seed)
+      this.$set(this,"dragStartMousePos", {x: evt.pageX,y: evt.pageY})
       // evt.preventDefault()
       if (evt.target.classList.contains("seed")){
         this.dragging = true
@@ -282,14 +301,27 @@ export default {
       
     },
     mouseMoving(evt){
-      this.mousePos.x =evt.x
-      this.mousePos.y =evt.y
+      let deltaX = evt.pageX- this.mousePos.x
+      let deltaY = evt.pageY- this.mousePos.y
+      this.mousePos.x =evt.pageX
+      this.mousePos.y =evt.pageY
       if ( this.focusedSeed && this.dragging) {
-        this.focusedSeed.p.x = evt.x - this.draggingPan.offsetX
-        this.focusedSeed.p.y = evt.y - this.draggingPan.offsetY
+        if (!this.selection.selectedSeeds){
+          this.focusedSeed.p.x+=deltaX
+          this.focusedSeed.p.y+=deltaY
+          db.ref("seeds").child(this.focusedSeed.uid).child('p').set(this.focusedSeed.p)
 
+          db.ref("seeds").child(this.focusedSeed.uid).child('p').set(this.focusedSeed.p)
 
-        db.ref("seeds").child(this.focusedSeed.uid).child('p').set(this.focusedSeed.p)
+        }else{
+          console.log("group dragging")
+          this.selection.selectedSeeds.forEach(seed=>{
+            seed.p.x+=deltaX
+            seed.p.y+=deltaY
+            db.ref("seeds").child(seed.uid).child('p').set(seed.p)
+          })
+        }
+
 
       }
     },
@@ -327,7 +359,6 @@ export default {
           top: seed.p.y+ "px",
           cursor: seed.dragging?"grab":"initial",
           opacity: (this.getNextNode(seed) || seed=== this.focusedSeed)?1:(this.focusedSeed?0.5:0.85),
-          'box-shadow': this.focusedSeed===seed?"0px 0px 0px 5px rgba(200,100,100,0.7),0px 0px 45px 0px rgba(0,0,0,0.6)":"0px 0px 5px rgba(0,0,0,0.3),0px 0px 0px 2px rgba(150,150,150,0.6)",
           'z-index':  this.focusedSeed===seed?1000:seed.id
         }
       }
@@ -499,6 +530,7 @@ export default {
         this.focusedSeed=null
         this.pinning=false
         this.dragging=false
+        this.selection.selecting=false
       }
     },
     saveSeed(seed){
@@ -521,9 +553,78 @@ export default {
         }
       }
       return ""
+    },
+
+
+    startSelection(evt){
+      console.log("start selection")
+      // console.log(evt)
+      this.$set(this.selection,"selecting",true)
+      this.$set(this.selection,"startPos",{
+        x: evt.pageX,
+        y: evt.pageY
+      })
+    },
+    endSelection(){
+      let selRect = this.selectionRect
+      var pointInRange = (x,y)=>{
+        return selRect.x < x && selRect.x+selRect.width>x && 
+               selRect.y < y && selRect.y+selRect.height>y
+      }
+      console.log("end selection")
+      let selectedSeeds = this.seeds.filter(f=>f).filter(seed=>{
+        let outletY = this.getPinPositions(seed).outlet.y
+        return (pointInRange(seed.p.x,seed.p.y) || pointInRange(seed.p.x,outletY) ||
+            pointInRange(seed.p.x+200,seed.p.y) || pointInRange(seed.p.x+200,outletY) ) 
+      })
+      // console.log(selectedSeeds)
+      this.$set(this.selection,"selecting",false)
+      this.$set(this.selection,"selectedSeeds",selectedSeeds)
+    },
+    isSelectedInGroup(seed){
+      if (this.selection.selectedSeeds){
+        return this.selection.selectedSeeds.find(s=>s===seed)
+      }
     }
+
   },
   computed:{
+    selectedSeeds(){
+      let selectedSeeds = this.seeds.filter(f=>f).filter(seed=>{
+        let outletY = this.getPinPositions(seed).outlet.y
+        return (pointInRange(seed.p.x,seed.p.y) || pointInRange(seed.p.x,outletY) ||
+            pointInRange(seed.p.x+200,seed.p.y) || pointInRange(seed.p.x+200,outletY) ) 
+      })
+      this.$set(this.selection,"selectedSeeds",selectedSeeds)
+
+    },
+    selectionRect(){
+       if (this.selection.selecting){
+        let p1 = JSON.parse(JSON.stringify(this.selection.startPos))
+        let p2 = JSON.parse(JSON.stringify(this.mousePos))
+
+        //let width and height become positive number
+        if (p1.x>p2.x){
+          let t = p2.x
+          p2.x = p1.x
+          p1.x = t
+        }
+        if (p1.y>p2.y){
+          let t = p2.y
+          p2.y = p1.y
+          p1.y = t
+        }
+
+        return {
+          x: p1.x,
+          y: p1.y,
+          width: p2.x - p1.x,
+          height: p2.y - p1.y,
+        }
+       }else{
+         return null
+       }
+    },
     generatedEssay(){
       return this.linkedNodeList.reduce((result,seed)=>result+this.getSeedHtmlContent(seed),"")
     },
@@ -575,6 +676,9 @@ export default {
         }
       }
       return result
+    },
+    selectedRects(){
+      
     }
     
   },
@@ -653,12 +757,22 @@ img
   align-items: center
   overflow: hidden
     
+
+  .bg-transparent
+    position: absolute
+    width: 100%
+    height: 100%
+    left: 0
+    top: 0
+    z-index: 1
   .seeds
     flex: 8
+    z-index: 2
     // overflow: scroll
 
   #seeds_field
     // overflow: scroll
+    user-select: none
     
   .generate_essay
     flex: 3
@@ -757,6 +871,11 @@ img
     stroke-width: 3px
     polyline
       fill: none
+    rect
+      stroke-width: 2px
+      fill: rgba(#24d,0.2)
+      stroke: #24d
+
       
 
   .seed
@@ -765,7 +884,7 @@ img
     border-radius: 2px
     background-color: #fff
     // padding: 20px 15px
-    box-shadow: 0px 0px 15px rgba(black,0.2)
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.3),0px 0px 0px 2px rgba(150,150,150,0.6)
     // .content
     padding: 10px 10px
     transition: opacity 0.2s,border-color 0.2s
@@ -839,7 +958,11 @@ img
     &.linked
       // border: solid 4px #bbb
       box-shadow: 0px 0px 0px 1px rgba(#888,0.7) ,0px 0px 5px rgba(black,0.2)
-      
+    &.group-selected
+      box-shadow: 0px 0px 0px 8px rgba(100,100,200,1),0px 0px 45px 10px rgba(0,0,0,0.6)
+    &.focused
+      box-shadow: 0px 0px 0px 5px rgba(200,100,100,0.7),0px 0px 45px 0px rgba(0,0,0,0.6)
+
     &:hover
       // background-color: #eee
       opacity: 1

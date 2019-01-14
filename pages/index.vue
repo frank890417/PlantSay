@@ -22,13 +22,14 @@
                     li 加入上下節點取消連結功能
                     li 優化編輯介面 - 節點種類改為hover時顯示
                     li 改為只能看到自己新增與示範用的文章
+                    li 加入全組選取同步拖曳功能
             .col-sm-8
 
                 ul.list-group
                     li.list-group-item(v-for="(post,pid) in myposts")
                         nuxt-link(:to="'/post/'+post.uid"  v-if="post", title="前往文章") 
                             h5 {{post.title || "新文章"}}
-                        label {{ post.authorName }} | {{ new Date(post.created_at).toLocaleString() }}
+                        label {{ post.authorName }} | {{ new Date(post.updated_at).toLocaleString() }}
                         .btn.btn-dark.float-right(@click="deletePost(post.uid)" v-if="user && post.authorId == user.uid") 刪除
                         nuxt-link.float-right(:to="'/edit/'+post.uid" v-if="post && user" ) 
                             .btn.btn-primary.mr-2 編輯
