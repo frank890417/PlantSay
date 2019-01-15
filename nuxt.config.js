@@ -7,16 +7,19 @@ module.exports = {
   ** Headers of the page
   */
   head: {
-    title: pkg.name,
+    title: "Organism - 碎片世代的知識管理平台",
+    description: "Organism是節點版本的文章編輯器，把內容拆成散落的片段進行組合跟寫作，為非線性寫作平台，用節點的方式寫作跟管理知識內容，避免文章很難一路寫到底的問題，把一些骨架跟靈感抓出來之後再湊起來。",
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: pkg.description }
+      { hid: 'description', name: 'description', content: pkg.description },
+      {name="google-site-verification" ,content="JVDPbZeedzJZBN4DbLq1rDBoZX_WLbHJOQRvFJMzEZ4"}
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
       { rel: 'stylesheet', href: 'https://use.fontawesome.com/releases/v5.6.3/css/all.css' }
-    ]
+    ],
+
   },
 
   /*

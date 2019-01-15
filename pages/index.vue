@@ -13,16 +13,7 @@
                     h4 Hello {{user.displayName}}
                     br
                     button.btn.btn-primary(@click="logout") 登出
-                
-                h4.mt-5 2019/1/14  
-                h5 v0.0.4
-                ol
-                    li 加入節點標題、文章標題多行功能
-                    li 加入簡易操作說明
-                    li 加入上下節點取消連結功能
-                    li 優化編輯介面 - 節點種類改為hover時顯示
-                    li 改為只能看到自己新增與示範用的文章
-                    li 加入全組選取同步拖曳功能
+
             .col-sm-8
 
                 ul.list-group
